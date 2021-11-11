@@ -2,7 +2,7 @@
 Easy and fast shell script to create an extroot on your USB stick to extend the space on your Openwrt devices.
 
 ## How to run the script:
-Simply run this one-liner: 
+Simply run these two lines on yout serial/ssh console: 
 ```
 opkg update ; opkg install libustream-mbedtls
 wget https://raw.githubusercontent.com/suuhm/quick-extroot-openwrt.sh/main/quick-extroot.sh -qO- | sh -s -- --create-extroot 
