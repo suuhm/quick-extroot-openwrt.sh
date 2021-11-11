@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# -------------------
-# smart-extroot v0.1
-# -------------------
+# --------------------------------
+# openwrt : quick-extroot v0.2a
+# -------------------------------
 # (c) 2021 suuhm
 #
 # Troubleshoot failsafemode: https://openwrt.org/docs/guide-user/troubleshooting/failsafe_and_factory_reset#failsafe_mode
@@ -52,9 +52,9 @@ function _set_xedroot() {
                 #Setup dev usb/ssd/etc
                 echo "* Check for your wished device:"
                 sleep 3
-                echo "--------------------- LIST OF DEVICES ---------------------"
-                block info | grep -e sd | awk '{print "USB Devicename: " $1 " ---- UUID: " $2}'
-                echo "-----------------------------------------------------------"
+                echo "--------------------- LIST OF EXT-DEVICES ---------------------"
+                fdisk -l | grep -e '^Disk.*sd' | awk '{print "DEVICENAME: " $2 }'
+                echo "---------------------------------------------------------------"
                 #lsusb
                 echo
                 echo "Please enter your Device without Number at the end: (eg. sda)"
@@ -74,17 +74,24 @@ function _set_xedroot() {
         fi
 
 
-        echo "* Create and format device: ($CH_DEV)"
+		fdisk -l | grep -e ${CH_DEV}1
+		
+		if [ $? -ne 0 ]; then
+        	echo "* Create and format device: ($CH_DEV)"
 fdisk ${CH_DEV} <<EOF
 n
 p
 1
 
 
-
+Y
 w
 EOF
+		fi
 
+        echo "--------------------- LIST OF DEVICES ---------------------"
+        block info | grep -e sd | awk '{print "USB Devicename: " $1 " ---- UUID: " $2}'
+        echo "-----------------------------------------------------------"
         #set kernel invoke:
         #partx /dev/sda
 
@@ -111,7 +118,10 @@ EOF
         sleep 3
         #reboot
         logger -t quick-extroot-owrt.sh "Done $(date)"
+        echo
+        echo "*****************************************"
         echo "Done. You can now reboot your Device"
+        echo "*****************************************"
 }
 
 # SAVE OPKG LIST TO EXTROOT INSTEAD OF RAM
@@ -145,6 +155,8 @@ function _set_swap() {
         uci commit fstab
         /etc/init.d/fstab boot
 
+		echo
+		echo "* Swap Successful created and activated!"
         echo "* Verify swap status"
         cat /proc/swaps
 }
