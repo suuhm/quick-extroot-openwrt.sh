@@ -155,8 +155,8 @@ function _set_swap() {
         uci commit fstab
         /etc/init.d/fstab boot
 
-		echo
-		echo "* Swap Successful created and activated!"
+	echo
+	echo "* Swap Successful created and activated!"
         echo "* Verify swap status"
         cat /proc/swaps
 }
@@ -169,6 +169,96 @@ function _check_device() {
                 echo "Error! Device not found or not correct set, exit"
                 exit 1
         fi
+}
+
+function _checkfix_extroot() {
+        #start checks and opkg update / installs
+        echo "* Install dependencies:"
+        opkg update
+        opkg install block-mount kmod-fs-ext4 kmod-usb-storage kmod-usb-ohci kmod-usb-uhci e2fsprogs fdisk
+
+        if [ $? -ne 0 ]; then
+                logger -t quick-extroot-owrt.sh "ERROR! Something with opkg went wrong, exit."
+                echo "Something went wrong exit now"
+                exit 1;
+        fi
+
+        if ! $(ls /dev/ | grep -q sda);
+        then
+                logger -t quick-extroot-owrt.sh "ERROR! No Device found Script will now exit."
+                echo "ERROR! No Device found Script will now exit."
+                exit 1;
+        fi
+
+        echo "* Set up ExtRoot on your openwrt Device:"
+        sleep 3
+
+        # config rootfs_data
+        echo "* Configure /etc/config/fstab to mount the rootfs_data in another directory"
+
+        MT_DEVICE="$(sed -n -e "/\s\/overlay\s.*$/s///p" /etc/mtab)"
+        uci -q delete fstab.rwm
+        uci set fstab.rwm="mount"
+        uci set fstab.rwm.device="${MT_DEVICE}"
+        uci set fstab.rwm.target="/rwm"
+        uci commit fstab
+
+        # manual: grep -e rootfs_data /proc/mtd
+        sleep 3
+
+        if [ ! $2 ]; then
+                #Setup dev usb/ssd/etc
+                echo "* Check for your wished device:"
+                sleep 3
+                echo "--------------------- LIST OF EXT-DEVICES ---------------------"
+                fdisk -l | grep -e '^Disk.*sd' | awk '{print "DEVICENAME: " $2 }'
+                echo "---------------------------------------------------------------"
+                #lsusb
+                echo
+                echo "Please enter your Device without Number at the end: (eg. sda)"
+                read CH_DEV
+                CH_DEV="/dev/${CH_DEV}"
+
+                echo "Warning! All Data on your Device will be destroyed! Continue? (y/n)"
+                read yn
+
+                if [ "$yn" == "n" ]; then
+                        echo "Exit now , pls check your Device first for sense data"
+                        exit 0;
+                fi
+        else
+                _check_device
+                CH_DEV=$__DEV
+        fi
+
+
+        echo "--------------------- LIST OF DEVICES ---------------------"
+        block info | grep -e sd | awk '{print "USB Devicename: " $1 " ---- UUID: " $2}'
+        echo "-----------------------------------------------------------"
+        #set kernel invoke:
+        #partx /dev/sda
+
+        #set first part. on disk
+        XTDEVICE="${CH_DEV}1"
+
+ 	echo "* Mount and delete some extroot-files"
+        mount $XTDEVICE /mnt && rm -f /mnt/etc/.extroot-uuid; rm -f /mnt/.extroot-uuid
+
+        # configure the selected partition as new overlay via fstab UCI subsystem:
+        eval $(block info ${XTDEVICE} | grep -o -e "UUID=\S*")
+        uci -q delete fstab.overlay
+        uci set fstab.overlay="mount"
+        uci set fstab.overlay.uuid="${UUID}"
+        uci set fstab.overlay.target="/overlay"
+        uci commit fstab
+	
+	sleep 3
+        #reboot
+        logger -t quick-extroot-owrt.sh "Done $(date)"
+        echo
+        echo "*****************************************"
+        echo "Done. You can now reboot your Device"
+        echo "*****************************************"
 }
 
 # MAIN()
@@ -187,6 +277,9 @@ elif [ "$1" == "--create-swap" ]; then
 elif [ "$1" == "--set-opkg2er" ]; then
         _set_opkg2er
         exit 0
+elif [ "$1" == "--checkfix-extroot" ]; then
+        _checkfix_extroot
+        exit 0
 else
         echo "Wrong input! Please enter one of these options:"
         echo
@@ -195,6 +288,7 @@ else
         echo "                  --create-extroot <dev>"
         echo "                  --create-swap <dev>"
         echo "                  --set-opkg2er"
+	echo "                  --checkfix-extroot"
         echo
         exit 1;
 fi
