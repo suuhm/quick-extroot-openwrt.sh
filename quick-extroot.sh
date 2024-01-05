@@ -57,11 +57,17 @@ function _set_xedroot() {
                 echo "---------------------------------------------------------------"
                 #lsusb
                 echo
-                echo "Please enter your Device without Number at the end: (eg. sda)"
-                read CH_DEV
-                CH_DEV="/dev/${CH_DEV}"
+                echo "Please enter your Device without Number at the end: (eg. /dev/sda)"
+                echo -n "Enter devicename (/dev/sda) "; read CH_DEV
+                #CH_DEV="/dev/${CH_DEV}"
+		if [ -z $CH_DEV ]; then
+                        echo "Exit now , please enter a devicename"
+                        exit 1;
+		else
+                        CH_DEV=${CH_DEV}
+                fi
 
-                echo "Warning! All Data on your Device will be destroyed! Continue? (y/n)"
+                echo "Warning! All Data on ($CH_DEV) will be destroyed! Continue? (y/n)"
                 read yn
 
                 if [ "$yn" == "n" ]; then
