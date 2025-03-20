@@ -72,7 +72,7 @@ function _set_xedroot() {
                 echo "Warning! All Data on ($CH_DEV) will be destroyed! Continue? (y/n)"
                 read yn
 
-                if [ "$yn" != "y" ] && [ ! -z $yn ]
+                if [ "$yn" != "y" ] && [ ! -z $yn ]; then
                         echo;echo "Exit now, pls check your Device first for sense data"
                         exit 0;
                 fi
