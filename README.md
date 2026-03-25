@@ -1,3 +1,9 @@
+[![Join Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/2tRn7GWTRm)
+[![Stars](https://img.shields.io/github/stars/suuhm/quick-extroot-openwrt.sh?color=gold&style=for-the-badge&logo=github)](https://github.com/suuhm/quick-extroot-openwrt.sh)
+[![Forks](https://img.shields.io/github/forks/suuhm/quick-extroot-openwrt.sh?color=silver&style=for-the-badge&logo=github)](https://github.com/suuhm/quick-extroot-openwrt.sh/network)
+[![Issues](https://img.shields.io/github/issues/suuhm/quick-extroot-openwrt.sh?color=red&style=for-the-badge&logo=github)](https://github.com/suuhm/quick-extroot-openwrt.sh/issues)
+[![PRs](https://img.shields.io/github/issues-pr/suuhm/quick-extroot-openwrt.sh?color=orange&style=for-the-badge&logo=github)](https://github.com/suuhm/quick-extroot-openwrt.sh/pulls)
+
 # quick-extroot-openwrt.sh
 Easy and fast shell script to create an extroot on your Storage devives to extend the space on your Openwrt devices.
 
